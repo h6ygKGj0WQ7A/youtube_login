@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ログイン - YouTube動画管理アプリ</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin:0; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 320px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #FF4B4B; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #e04343; }
+        .error { color: red; font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>YouTube動画管理アプリ</h3>
+        <p>メールアドレスを入力してPasskeyでログインしてください。</p>
+        <input type="email" id="email" placeholder="メールアドレス" required>
+        <button id="login-btn">Passkeyでログイン</button>
+        <div id="error-msg" class="error"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://gcmpvzzjzkchokubibwu.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_gn4alH7iRAodzyFLZc4-Og_VgI0f9nO";
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                experimental: { passkey: true }
+            }
+        });
+
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.innerText = "";
+
+            if (!email) {
+                errorMsg.innerText = "メールアドレスを入力してください。";
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPasskey({ email: email });
+                if (error) throw error;
+
+                const session = data.session;
+                
+                const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
+                const redirectUrl = new URL(STREAMLIT_APP_URL);
+                
+                redirectUrl.searchParams.set("access_token", session.access_token);
+                redirectUrl.searchParams.set("refresh_token", session.refresh_token);
+
+                window.location.href = redirectUrl.toString();
+            } catch (e) {
+                errorMsg.innerText = "ログイン失敗: " + e.message;
+            }
+        });
+    </script>
+</body>
+</html>
