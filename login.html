@@ -74,6 +74,8 @@
                 if (ticketError) throw ticketError;
 
                 const ticketId = ticketData.id;
+                document.getElementById('status').innerText = document.getElementById('status').innerText + ' チケットID: ' + ticketId;
+
                 const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
                 const redirectUrl = new URL(STREAMLIT_APP_URL);
                 
