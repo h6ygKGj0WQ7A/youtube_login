@@ -68,7 +68,10 @@
 
             try {
                 document.getElementById('status').innerText = session.access_token + " / " + session.refresh_token;
-                const { data: ticketData, error: ticketError } = await supabaseClient
+                console.log('--- DBインサート処理を開始します ---');
+                console.log('使用するクライアント設定:', supabaseClient);
+
+                const response = await supabaseClient
                     .from('login_tickets')
                     .insert([
                         { access_token: session.access_token, refresh_token: session.refresh_token }
@@ -76,9 +79,12 @@
                     .select('id') 
                     .single();
 
-                document.getElementById('status').innerText = '移行チケットを発行中...2';
-                if (ticketError) throw ticketError;
-                document.getElementById('status').innerText = '移行チケットを発行中...3';
+                console.log('--- DBインサート処理が終了しました ---', response);          
+                const { data: ticketData, error: ticketError } = response;
+                if (ticketError) {
+                    console.error('Supabaseから返ってきたエラー:', ticketError);
+                    throw ticketError;
+                }
 
                 const ticketId = ticketData.id;
                 document.getElementById('status').innerText = ' チケットID: ' + ticketId;
