@@ -111,7 +111,7 @@
 
                 if (!session || event === 'SIGNED_OUT') {
                     isProcessing = false;
-                    document.getElementById('status').innerText = 'サインアウトしているので、ログインしてください。';
+                    document.getElementById('status').innerText = '';
                     document.getElementById('login-form').style.display = 'block';
                     return; 
                 }
@@ -124,7 +124,7 @@
 
                     // --- 未認証の場合 ---
                     isProcessing = false;
-                    document.getElementById('status').innerText = 'ログインしてください。';
+                    document.getElementById('status').innerText = '';
                     document.getElementById('login-form').style.display = 'block';
 
                 }
