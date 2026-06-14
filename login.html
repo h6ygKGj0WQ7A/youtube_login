@@ -107,25 +107,30 @@
 
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
 
-            if (!session || event === 'SIGNED_OUT') {
-                isProcessing = false;
-                document.getElementById('status').innerText = 'サインアウトしているので、ログインしてください。';
-                document.getElementById('login-form').style.display = 'block';
-                return; 
-            }
+            setTimeout(async () => {
 
-            // パターンA：ログイン状態を検知したとき（切り分けた共通関数を呼び出す）
-            if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-                await issueTicketAndRedirect(session);
+                if (!session || event === 'SIGNED_OUT') {
+                    isProcessing = false;
+                    document.getElementById('status').innerText = 'サインアウトしているので、ログインしてください。';
+                    document.getElementById('login-form').style.display = 'block';
+                    return; 
+                }
 
-            } else {
+                // パターンA：ログイン状態を検知したとき（切り分けた共通関数を呼び出す）
+                if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                    await issueTicketAndRedirect(session);
 
-                // --- 未認証の場合 ---
-                isProcessing = false;
-                document.getElementById('status').innerText = 'ログインしてください。';
-                document.getElementById('login-form').style.display = 'block';
+                } else {
 
-            }
+                    // --- 未認証の場合 ---
+                    isProcessing = false;
+                    document.getElementById('status').innerText = 'ログインしてください。';
+                    document.getElementById('login-form').style.display = 'block';
+
+                }
+
+            }, 0); 
+
         });
 
         document.getElementById('login_mfa-btn').addEventListener('click', async () => {
