@@ -72,10 +72,12 @@
                     .select('id') 
                     .single();
 
+                document.getElementById('status').innerText = '移行チケットを発行中...2';
                 if (ticketError) throw ticketError;
+                document.getElementById('status').innerText = '移行チケットを発行中...3';
 
                 const ticketId = ticketData.id;
-                document.getElementById('status').innerText = document.getElementById('status').innerText + ' チケットID: ' + ticketId;
+                document.getElementById('status').innerText = ' チケットID: ' + ticketId;
 
                 const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
                 const redirectUrl = new URL(STREAMLIT_APP_URL);
