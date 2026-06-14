@@ -8,7 +8,7 @@
         body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin:0; }
         .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 320px; }
         input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #FF4B4B; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button { width: 100%; padding: 10px; margin: 10px 0;  background: #FF4B4B; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button:hover { background: #e04343; }
         .error { color: red; font-size: 14px; margin-top: 10px; }
     </style>
@@ -60,7 +60,7 @@
                 const factorId = mfaData.totp[0].id; 
                 const { data: mfaVerifyData, error: mfaVerifyError } = await supabaseClient.auth.mfa.challengeAndVerify({
                     factorId: factorId,
-                    code: totpCode
+                    code: mfaCode
                 });    
                 if (mfaVerifyError) throw mfaVerifyError;
 
