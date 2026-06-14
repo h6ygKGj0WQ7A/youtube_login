@@ -55,6 +55,10 @@
             },                
         });
 
+        function showLoginForm() {
+            document.getElementById('login-form').style.display = 'block';
+        }
+
         async function issueTicketAndRedirect(session) {
 
             document.getElementById('status').innerText = 'processing...';
@@ -91,18 +95,30 @@
             } catch (error) {
                 document.getElementById('status').innerText = 'チケット発行に失敗しました: ' + error.message;
                 console.error(error);
+                await supabaseClient.auth.signOut({ scope: 'local' }); 
                 isProcessing = false; // エラーで失敗した時は、やり直せるようにfalseに戻す
+                showLoginForm();
+                return;
             }
         }
 
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
+
+            if (!session || event === 'SIGNED_OUT') {
+                isProcessing = false;
+                document.getElementById('status').innerText = 'サインアウトしているので、ログインしてください。';
+                document.getElementById('login-form').style.display = 'block';
+                return; 
+            }
+
+            // パターンA：ログイン状態を検知したとき（切り分けた共通関数を呼び出す）
             if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-                document.getElementById('status').innerText = '認証されました。移動します...';
                 await issueTicketAndRedirect(session);
 
             } else {
 
                 // --- 未認証の場合 ---
+                isProcessing = false;
                 document.getElementById('status').innerText = 'ログインしてください。';
                 document.getElementById('login-form').style.display = 'block';
 
