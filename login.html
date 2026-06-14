@@ -84,6 +84,7 @@
                 window.top.location.replace(redirectUrl.toString());
 
             } catch (error) {
+                document.getElementById('status').innerText = 'チケット発行に失敗しました: ' + error.message;
                 console.error(error);
                 isProcessing = false; // エラーで失敗した時は、やり直せるようにfalseに戻す
             }
