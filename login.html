@@ -114,11 +114,10 @@
                 
                 const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
                 const redirectUrl = new URL(STREAMLIT_APP_URL);
-                
-                redirectUrl.searchParams.set("access_token", session.access_token);
-                redirectUrl.searchParams.set("refresh_token", session.refresh_token);
 
+                redirectUrl.hash = `access_token=${session.access_token}&refresh_token=${session.refresh_token}`;
                 window.location.href = redirectUrl.toString();
+
             } catch (e) {
                 // ③ エラーが起きたら画面に表示する
                 errorMsg.innerText = "ログイン失敗: " + e.message;
