@@ -112,10 +112,12 @@
                     throw new Error("セッションが取得できませんでした。パスキーが未登録の可能性があります。");
                 }
                 
+                sessionStorage.setItem('sb_access_token', session.access_token);
+                sessionStorage.setItem('sb_refresh_token', session.refresh_token);
+
                 const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
                 const redirectUrl = new URL(STREAMLIT_APP_URL);
 
-                redirectUrl.hash = `access_token=${session.access_token}&refresh_token=${session.refresh_token}`;
                 window.location.href = redirectUrl.toString();
 
             } catch (e) {
