@@ -28,7 +28,7 @@
         const SUPABASE_ANON_KEY = "sb_publishable_gn4alH7iRAodzyFLZc4-Og_VgI0f9nO";
         
         // Supabaseクライアントの初期化（大文字のSから開始）
-        const supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.getElementById('login-btn').addEventListener('click', async () => {
             // ① ボタンが押されたら、画面を真っ黄色にしてアラートを出す
