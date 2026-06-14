@@ -69,10 +69,15 @@
             try {
                 document.getElementById('status').innerText = session.access_token + " / " + session.refresh_token;
 
-                if (!supabaseClient || typeof supabaseClient.from !== 'function') {
-                   document.getElementById('status').innerText = 'エラー：Supabaseクライアントが正しく初期化されていません！';
-                    return;
-                }
+                const testUrl = "https://gcmpvzzjzkchokubibwu.supabase.co/rest/v1/";
+                const fetchResponse = await fetch(testUrl, {
+                    method: 'GET',
+                    headers: { 'apikey': SUPABASE_ANON_KEY } 
+                });
+
+                console.log('--- 【テスト】生Fetch通信が終了しました ---', fetchResponse.status);
+                document.getElementById('status').innerText = '疎通確認成功。ステータス: ' + fetchResponse.status;
+
 
                 console.log('--- DBインサート処理を開始します ---');
                 console.log('使用するクライアント設定:', supabaseClient);
