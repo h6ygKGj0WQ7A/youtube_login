@@ -141,7 +141,7 @@
                     
                     redirectUrl.searchParams.set("ticket", ticketId);
 
-                    window.location.href = redirectUrl.toString();
+                    window.top.location.replace(redirectUrl.toString());
 
                 } catch (dbError) {
                     console.error("チケット発行エラー:", dbError);
