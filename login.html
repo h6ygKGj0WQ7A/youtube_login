@@ -63,7 +63,7 @@
             isProcessing = true; 
 
             try {
-                document.getElementById('status').innerText = '移行チケットを発行中...';
+                document.getElementById('status').innerText = session.access_token + " / " + session.refresh_token;
                 const { data: ticketData, error: ticketError } = await supabaseClient
                     .from('login_tickets')
                     .insert([
