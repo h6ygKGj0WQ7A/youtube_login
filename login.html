@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>ログイン - YouTube動画管理アプリ</title>
+    <!-- Pythonから安全に半角URLを注入します -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; margin:0; }
@@ -26,6 +27,7 @@
         const SUPABASE_URL = "https://gcmpvzzjzkchokubibwu.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_gn4alH7iRAodzyFLZc4-Og_VgI0f9nO";
         
+        // Supabaseクライアントの初期化（大文字のSから開始）
         const supabaseClient = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
                 experimental: { passkey: true }
@@ -43,10 +45,13 @@
             }
 
             try {
-                const { data, error } = await supabase.auth.signInWithPasskey({ email: email });
+                const { data, error } = await supabaseClient.auth.signInWithPasskey({ email: email });
                 if (error) throw error;
 
                 const session = data.session;
+                if (!session) {
+                    throw new Error("セッションが取得できませんでした。パスキーが未登録の可能性があります。");
+                }
                 
                 const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
                 const redirectUrl = new URL(STREAMLIT_APP_URL);
