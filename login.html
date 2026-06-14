@@ -76,8 +76,7 @@
                     .insert([
                         { access_token: session.access_token, refresh_token: session.refresh_token }
                     ])
-                    .select('id') 
-                    .single();
+                    .select('id');
 
                 console.log('--- DBインサート処理が終了しました ---', response);          
                 const { data: ticketData, error: ticketError } = response;
@@ -86,7 +85,10 @@
                     throw ticketError;
                 }
 
-                const ticketId = ticketData.id;
+                if (!ticketDataArray || ticketDataArray.length === 0) {
+                    throw new Error('チケットデータが空で返ってきました');
+                }
+                const ticketId = ticketDataArray[0].id;
                 document.getElementById('status').innerText = ' チケットID: ' + ticketId;
 
                 const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
