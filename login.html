@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=2.0">
 
     <title>ログイン - YouTube動画管理アプリ</title>
     <!-- Pythonから安全に半角URLを注入します -->
@@ -123,13 +123,30 @@
                     throw new Error("セッションが取得できませんでした。パスキーが未登録の可能性があります。");
                 }
                 
-                sessionStorage.setItem('sb_access_token', session.access_token);
-                sessionStorage.setItem('sb_refresh_token', session.refresh_token);
+                try {
+                    // 👑 1. 手に入ったトークンを、先ほど作ったSupabaseのテーブルに預ける（インサート）
+                    const { data: ticketData, error: ticketError } = await supabaseClient
+                        .from('login_tickets')
+                        .insert([
+                            { access_token: session.access_token, refresh_token: session.refresh_token }
+                        ])
+                        .select('id') 
+                        .single();
 
-                const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
-                const redirectUrl = new URL(STREAMLIT_APP_URL);
+                    if (ticketError) throw ticketError;
 
-                window.location.href = redirectUrl.toString();
+                    const ticketId = ticketData.id;
+                    const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
+                    const redirectUrl = new URL(STREAMLIT_APP_URL);
+                    
+                    redirectUrl.searchParams.set("ticket", ticketId);
+
+                    window.location.href = redirectUrl.toString();
+
+                } catch (dbError) {
+                    console.error("チケット発行エラー:", dbError);
+                    throw new Error("ログイン情報の引き継ぎ準備に失敗しました。");
+                }
 
             } catch (e) {
                 // ③ エラーが起きたら画面に表示する
