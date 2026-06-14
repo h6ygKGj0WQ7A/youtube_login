@@ -68,6 +68,12 @@
 
             try {
                 document.getElementById('status').innerText = session.access_token + " / " + session.refresh_token;
+
+                if (!supabaseClient || typeof supabaseClient.from !== 'function') {
+                   document.getElementById('status').innerText = 'エラー：Supabaseクライアントが正しく初期化されていません！';
+                    return;
+                }
+
                 console.log('--- DBインサート処理を開始します ---');
                 console.log('使用するクライアント設定:', supabaseClient);
 
