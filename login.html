@@ -67,39 +67,23 @@
             isProcessing = true; 
 
             try {
-                document.getElementById('status').innerText = session.access_token + " / " + session.refresh_token;
 
-                const testUrl = "https://gcmpvzzjzkchokubibwu.supabase.co/rest/v1/";
-                const fetchResponse = await fetch(testUrl, {
-                    method: 'GET',
-                    headers: { 'apikey': SUPABASE_ANON_KEY } 
-                });
+                document.getElementById('status').innerText = '接続の有効性を確認中...';
 
-                console.log('--- 【テスト】生Fetch通信が終了しました ---', fetchResponse.status);
-                document.getElementById('status').innerText = '疎通確認成功。ステータス: ' + fetchResponse.status;
+                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+                if (authError || !user) {
+                console.log('認証エラー（接続が切れています）:', authError);
+                throw new Error('session_expired'); // 意図的にエラーを投げて catch へ飛ばす
+                }
 
-
-                console.log('--- DBインサート処理を開始します ---');
-                console.log('使用するクライアント設定:', supabaseClient);
-
-                const response = await supabaseClient
+                const { data: ticketData, error: ticketError } = await supabaseClient
                     .from('login_tickets')
-                    .insert([
-                        { access_token: session.access_token, refresh_token: session.refresh_token }
-                    ])
-                    .select('id');
+                    .insert([{ access_token: session.access_token, refresh_token: session.refresh_token }])
+                    .select('id') 
+                    .single();
 
-                console.log('--- DBインサート処理が終了しました ---', response);          
-                const { data: ticketData, error: ticketError } = response;
-                if (ticketError) {
-                    console.error('Supabaseから返ってきたエラー:', ticketError);
-                    throw ticketError;
-                }
-
-                if (!ticketDataArray || ticketDataArray.length === 0) {
-                    throw new Error('チケットデータが空で返ってきました');
-                }
-                const ticketId = ticketDataArray[0].id;
+                if (ticketError) throw ticketError;
+                const ticketId = ticketData.id;
                 document.getElementById('status').innerText = ' チケットID: ' + ticketId;
 
                 const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
@@ -115,7 +99,7 @@
                 document.getElementById('status').innerText = 'チケット発行に失敗しました: ' + error.message;
                 console.error(error);
                 await supabaseClient.auth.signOut({ scope: 'local' }); 
-                isProcessing = false; // エラーで失敗した時は、やり直せるようにfalseに戻す
+                isProcessing = false; 
                 showLoginForm();
                 return;
             }
