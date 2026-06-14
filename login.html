@@ -10,6 +10,7 @@
         body {
           font-family: sans-serif;
           display: flex;
+          flex-direction: column;
           justify-content: center;
           align-items: center;
           background: #f0f2f5;
@@ -27,7 +28,7 @@
 <body>
     <div id="status" class="card">状態を確認中...</div>
 
-    <div id="login-form" class="card">
+    <div id="login-form" class="card" style="display: none;">
         <h3>YouTube動画管理アプリ</h3>
         <input type="email" id="email" placeholder="メールアドレス" required />
         <input type="password" id="password" placeholder="パスワード" required />
