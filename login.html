@@ -55,11 +55,14 @@
         });
 
         async function issueTicketAndRedirect(session) {
+
+            document.getElementById('status').innerText = 'processing...';
+
             if (isProcessing) return;
             isProcessing = true; 
 
             try {
-                console.log('移行チケットを発行中...');
+                document.getElementById('status').innerText = '移行チケットを発行中...';
                 const { data: ticketData, error: ticketError } = await supabaseClient
                     .from('login_tickets')
                     .insert([
@@ -75,6 +78,7 @@
                 const redirectUrl = new URL(STREAMLIT_APP_URL);
                 
                 redirectUrl.searchParams.set("ticket", ticketId);
+                document.getElementById('status').innerText = 'チケット発行成功。リダイレクトします:';
                 console.log('チケット発行成功。リダイレクトします:', redirectUrl.toString());
 
                 window.top.location.replace(redirectUrl.toString());
@@ -133,7 +137,7 @@
 
                 const { data: passkeyData, error: passkeyError } = await supabaseClient.auth.registerPasskey();
                 if (passkeyError) throw passkeyError;
-                statusDiv.innerText = '登録成功！';
+                document.getElementById('status').innerText = '登録成功！';
                 console.log('Passkey ID:', data.id);
 
             } catch (e) {
@@ -154,9 +158,7 @@
             }
 
             try {
-                // ② Supabaseを呼び出す直前
-                errorMsg.innerText = "Supabaseの処理を呼び出します...";
-                
+
                 const { data, error } = await supabaseClient.auth.signInWithPasskey({ email: email });
                 if (error) throw error;
 
