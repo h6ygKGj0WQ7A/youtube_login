@@ -25,7 +25,9 @@
     </style>
 </head>
 <body>
-    <div class="card">
+    <div id="status">状態を確認中...</div>
+
+    <div id="login-form" class="card">
         <h3>YouTube動画管理アプリ</h3>
         <input type="email" id="email" placeholder="メールアドレス" required />
         <input type="password" id="password" placeholder="パスワード" required />
@@ -38,19 +40,75 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+
+        let isProcessing = false; 
+
         const SUPABASE_URL = "https://gcmpvzzjzkchokubibwu.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_gn4alH7iRAodzyFLZc4-Og_VgI0f9nO";
         
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                experimental: { 
+                passkey: true // パスキー機能を有効化
+                },
+            },                
+        });
+
+        async function issueTicketAndRedirect(session) {
+            if (isProcessing) return;
+            isProcessing = true; 
+
+            try {
+                console.log('移行チケットを発行中...');
+                const { data: ticketData, error: ticketError } = await supabaseClient
+                    .from('login_tickets')
+                    .insert([
+                        { access_token: session.access_token, refresh_token: session.refresh_token }
+                    ])
+                    .select('id') 
+                    .single();
+
+                if (ticketError) throw ticketError;
+
+                const ticketId = ticketData.id;
+                const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
+                const redirectUrl = new URL(STREAMLIT_APP_URL);
+                
+                redirectUrl.searchParams.set("ticket", ticketId);
+                console.log('チケット発行成功。リダイレクトします:', redirectUrl.toString());
+
+                window.top.location.replace(redirectUrl.toString());
+
+            } catch (error) {
+                console.error(error);
+                isProcessing = false; // エラーで失敗した時は、やり直せるようにfalseに戻す
+            }
+        }
+
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                await issueTicketAndRedirect(session);
+            }
+        });
+
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            document.getElementById('status').innerText = '認証されました。移動します...';
+            
+            // 💡 ここで「次の画面」へ移動します。
+            // トークンはブラウザ（LocalStorage）に自動保存されているので、
+            // URLに何も付けずにそのまま移動して大丈夫です。
+            window.location.href = 'dashboard.html';
+
+        } else {
+            // --- 【パターンB】未認証の場合（まだログインしていない） ---
+            document.getElementById('status').innerText = 'ログインしてください。';
+            // ログインフォームを表示する
+            document.getElementById('login-form').style.display = 'block';
+        }
+        });
 
         document.getElementById('login_mfa-btn').addEventListener('click', async () => {
-
-            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                auth: {
-                    experimental: { 
-                    passkey: true // パスキー機能を有効化
-                    },
-                },                
-            });
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -95,14 +153,6 @@
 
         document.getElementById('login_passkey-btn').addEventListener('click', async () => {
 
-            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                auth: {
-                    experimental: { 
-                    passkey: true // パスキー機能を有効化
-                    },
-                },                
-            });
-
             const email = document.getElementById('email').value;
             const errorMsg = document.getElementById('error-msg');
             errorMsg.innerText = "";
@@ -120,40 +170,13 @@
                 if (error) throw error;
 
                 const session = data.session;
-                if (!session) {
-                    throw new Error("セッションが取得できませんでした。パスキーが未登録の可能性があります。");
-                }
-                
-                try {
-                    // 👑 1. 手に入ったトークンを、先ほど作ったSupabaseのテーブルに預ける（インサート）
-                    const { data: ticketData, error: ticketError } = await supabaseClient
-                        .from('login_tickets')
-                        .insert([
-                            { access_token: session.access_token, refresh_token: session.refresh_token }
-                        ])
-                        .select('id') 
-                        .single();
+                await issueTicketAndRedirect(session);
 
-                    if (ticketError) throw ticketError;
-
-                    const ticketId = ticketData.id;
-                    const STREAMLIT_APP_URL = "https://youtube-49g3mdtygh9ewwgpafqfdv.streamlit.app/";
-                    const redirectUrl = new URL(STREAMLIT_APP_URL);
-                    
-                    redirectUrl.searchParams.set("ticket", ticketId);
-
-                    window.top.location.replace(redirectUrl.toString());
-
-                } catch (dbError) {
-                    console.error("チケット発行エラー:", dbError);
-                    throw new Error("ログイン情報の引き継ぎ準備に失敗しました。");
-                }
-
-            } catch (e) {
-                // ③ エラーが起きたら画面に表示する
-                errorMsg.innerText = "ログイン失敗: " + e.message;
-                document.body.style.backgroundColor = "#ffcccc"; // 薄い赤にする
+            } catch (error) {
+                console.error(error);
+                isProcessing = false; // エラーで失敗した時は、やり直せるようにfalseに戻す
             }
+
         });
     </script>
 </body>
