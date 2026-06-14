@@ -16,9 +16,11 @@
 <body>
     <div class="card">
         <h3>YouTube動画管理アプリ</h3>
-        <p>メールアドレスを入力してPasskeyでログインしてください。</p>
         <input type="email" id="email" placeholder="メールアドレス" required />
-        <button id="login-btn">Passkeyでログイン</button>
+        <input type="password" id="password" placeholder="パスワード" required />
+        <input type="text" id="mfa-code" placeholder="MFAコード(任意)" />
+        <button id="login_mfa-btn">MFAでログインしてPassKeyを登録</button>
+        <button id="login_passkey-btn">Passkeyでログイン</button>
         <div id="error-msg" class="error"></div>
     </div>
 
@@ -27,13 +29,61 @@
         const SUPABASE_URL = "https://gcmpvzzjzkchokubibwu.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_gn4alH7iRAodzyFLZc4-Og_VgI0f9nO";
         
-        // Supabaseクライアントの初期化（大文字のSから開始）
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            // ① ボタンが押されたら、画面を真っ黄色にしてアラートを出す
-            document.body.style.backgroundColor = "yellow";
-            alert("ボタンのクリックイベントは正常に反応しています！");
+        document.getElementById('login_mfa-btn').addEventListener('click', async () => {
+
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const mfaCode = document.getElementById('mfa-code').value;
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.innerText = "";
+
+            if (!email || !password) {
+                errorMsg.innerText = "メールアドレスとパスワードを入力してください。";
+                return;
+            }
+
+            try {
+                const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (signInError) throw signInError;
+
+                // MFAコードが必要な場合はここで処理
+                if (signInData.mfa && !mfaCode) {
+                    errorMsg.innerText = "MFAコードを入力してください。";
+                    return;
+                }
+                const { data: mfaData, error: mfaError } = await supabaseClient.auth.mfa.listFactors();
+                if (mfaError) throw mfaError;
+
+                const factorId = mfaData.totp[0].id; 
+                const { data: mfaVerifyData, error: mfaVerifyError } = await supabaseClient.auth.mfa.challengeAndVerify({
+                    factorId: factorId,
+                    code: totpCode
+                });    
+                if (mfaVerifyError) throw mfaVerifyError;
+
+                const { data: passkeyData, error: passkeyError } = await supabaseClient.auth.registerPasskey();
+                if (passkeyError) throw passkeyError;
+                statusDiv.innerText = '登録成功！';
+                console.log('Passkey ID:', data.id);
+
+            } catch (e) {
+                errorMsg.innerText = "ログイン失敗: " + e.message;
+                document.body.style.backgroundColor = "#ffcccc"; // 薄い赤にする
+            }
+        });
+
+        document.getElementById('login_passkey-btn').addEventListener('click', async () => {
+
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    experimental: { 
+                    passkey: true // パスキー機能を有効化
+                    },
+                },                
+            });
 
             const email = document.getElementById('email').value;
             const errorMsg = document.getElementById('error-msg');
@@ -41,8 +91,6 @@
 
             if (!email) {
                 errorMsg.innerText = "メールアドレスを入力してください。";
-                // 実験のために背景を戻す
-                document.body.style.backgroundColor = "#f0f2f5";
                 return;
             }
 
