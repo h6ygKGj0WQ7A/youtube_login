@@ -32,7 +32,13 @@
 
         document.getElementById('login_mfa-btn').addEventListener('click', async () => {
 
-            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    experimental: { 
+                    passkey: true // パスキー機能を有効化
+                    },
+                },                
+            });
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
