@@ -87,25 +87,16 @@
 
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                document.getElementById('status').innerText = '認証されました。移動します...';
                 await issueTicketAndRedirect(session);
+
+            } else {
+
+                // --- 未認証の場合 ---
+                document.getElementById('status').innerText = 'ログインしてください。';
+                document.getElementById('login-form').style.display = 'block';
+
             }
-        });
-
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session) {
-            document.getElementById('status').innerText = '認証されました。移動します...';
-            
-            // 💡 ここで「次の画面」へ移動します。
-            // トークンはブラウザ（LocalStorage）に自動保存されているので、
-            // URLに何も付けずにそのまま移動して大丈夫です。
-            window.location.href = 'dashboard.html';
-
-        } else {
-            // --- 【パターンB】未認証の場合（まだログインしていない） ---
-            document.getElementById('status').innerText = 'ログインしてください。';
-            // ログインフォームを表示する
-            document.getElementById('login-form').style.display = 'block';
-        }
         });
 
         document.getElementById('login_mfa-btn').addEventListener('click', async () => {
